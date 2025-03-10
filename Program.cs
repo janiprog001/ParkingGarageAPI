@@ -55,3 +55,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Seed adatok hozzáadása
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.EnsureCreated();  // Ellenőrzi, hogy az adatbázis létezik-e
+    dbContext.Seed();  // Seedelés hívása
+}
+
+app.Run();
