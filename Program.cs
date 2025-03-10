@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using ParkingGarageAPI.Context;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,9 +24,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new() { Title = "Parking Garage API", Version = "v1" });
-    c.AddSecurityDefinition("cookieAuth", new() {
-        Type = "apiKey",
-        In = "cookie",
+    c.AddSecurityDefinition("cookieAuth", new OpenApiSecurityScheme {
+        Type = SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Cookie,
         Name = ".AspNetCore.Cookies",
         Description = "Cookie authentication."
     });
