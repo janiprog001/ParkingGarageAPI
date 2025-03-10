@@ -57,4 +57,11 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
             ExpiresAt = expiresAt.ToString("HH:mm:ss")
         });
     }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return Ok("Logged out successfully.");
+    }
 }
