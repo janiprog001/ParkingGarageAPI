@@ -10,6 +10,7 @@ namespace ParkingGarageAPI.Context
 
         public DbSet<User> Users { get; set; }
         public DbSet<Car> Cars { get; set; }
+        public DbSet<ParkingSpot> ParkingSpots { get; set; }
 
         // Az entitások közötti kapcsolat konfigurálása
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -20,6 +21,12 @@ namespace ParkingGarageAPI.Context
                 .HasOne(c => c.User)
                 .WithMany(u => u.Cars)
                 .HasForeignKey(c => c.UserId);
+            
+            modelBuilder.Entity<ParkingSpot>()
+                .HasOne(p => p.Car)
+                .WithOne(c => c.ParkingSpot)
+                .HasForeignKey<ParkingSpot>(p => p.CarId)
+                .IsRequired(false);
         }
         
         // Seed metódus
@@ -51,6 +58,24 @@ namespace ParkingGarageAPI.Context
                         UserId = user.Id
                     }
                 );
+                SaveChanges();
+            }
+            
+            // ParkingSpot-ok hozzáadása, ha még nincsenek
+            if (!ParkingSpots.Any())
+            {
+                for (int floor = 1; floor <= 2; floor++)
+                {
+                    for (int spot = 1; spot <= 10; spot++)
+                    {
+                        ParkingSpots.Add(new ParkingSpot
+                        {
+                            FloorNumber = floor.ToString(),
+                            SpotNumber = spot.ToString("D2"),
+                            IsOccupied = false
+                        });
+                    }
+                }
                 SaveChanges();
             }
         }

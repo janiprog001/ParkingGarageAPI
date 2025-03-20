@@ -20,5 +20,12 @@ namespace ParkingGarageAPI.Entities
         
         [JsonIgnore] // Megakadályozza a körkörös referenciát JSON szerializáláskor
         public User? User { get; set; }
+        
+        // Kapcsolat a ParkingSpot entitással
+        [JsonIgnore]
+        public ParkingSpot? ParkingSpot { get; set; }
+        
+        // Parkolás státusza
+        public bool IsParked { get; set; } = false;
     }
 }
