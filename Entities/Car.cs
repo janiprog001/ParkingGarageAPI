@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ParkingGarageAPI.Entities
 {
@@ -14,8 +15,10 @@ namespace ParkingGarageAPI.Entities
         [Required]
         public string LicensePlate { get; set; }
 
-        // Kapcsolat a User entitu00e1ssal
+        // Kapcsolat a User entitással
         public int UserId { get; set; }
-        public User User { get; set; }
+        
+        [JsonIgnore] // Megakadályozza a körkörös referenciát JSON szerializáláskor
+        public User? User { get; set; }
     }
 }

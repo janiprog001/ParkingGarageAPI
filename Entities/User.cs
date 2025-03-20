@@ -5,6 +5,11 @@ namespace ParkingGarageAPI.Entities
 {
     public class User
     {
+        public User()
+        {
+            Cars = new List<Car>();
+        }
+        
         public int Id { get; set; }
         [Required]
         public string FirstName { get; set; }

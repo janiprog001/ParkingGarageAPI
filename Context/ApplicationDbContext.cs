@@ -27,23 +27,20 @@ namespace ParkingGarageAPI.Context
         {
             if (!Users.Any())
             {
-                Users.AddRange(
-                    new User
-                    {
-                        Id = 1,
-                        FirstName = "John",
-                        LastName = "Doe",
-                        PhoneNumber = "1234567890",
-                        Email = "john.doe@example.com",
-                        PasswordHash = Convert.ToBase64String(Encoding.UTF8.GetBytes("Start123"))
-                    }
-                );
+                var user = new User
+                {
+                    Id = 1,
+                    FirstName = "John",
+                    LastName = "Doe",
+                    PhoneNumber = "1234567890",
+                    Email = "john.doe@example.com",
+                    PasswordHash = Convert.ToBase64String(Encoding.UTF8.GetBytes("Start123"))
+                };
+                
+                Users.Add(user);
                 SaveChanges();
-            }
-
-            if (!Cars.Any())
-            {
-                Cars.AddRange(
+                
+                Cars.Add(
                     new Car
                     {
                         Id = 1,
@@ -51,7 +48,7 @@ namespace ParkingGarageAPI.Context
                         Model = "Corolla",
                         Year = 2020,
                         LicensePlate = "ABC-123",
-                        UserId = 1 // Kapcsolat a felhasználóhoz
+                        UserId = user.Id
                     }
                 );
                 SaveChanges();
