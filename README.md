@@ -50,6 +50,14 @@ Ez a projekt egy parkológarázs-kezelő rendszer API-ját implementálja **ASP.
 - `GET /api/statistics/by-car` - Parkolási statisztikák autónként
 - `GET /api/statistics/monthly` - Havi parkolási statisztikák
 
+### Admin Statisztikák
+
+- `GET /api/admin/statistics/all-history` - Összes parkolási előzmény
+- `GET /api/admin/statistics/revenue` - Bevételi statisztikák
+- `GET /api/admin/statistics/occupancy` - Parkolóház kihasználtsági statisztikák
+- `GET /api/admin/statistics/user-activity` - Felhasználói aktivitás kimutatás
+- `GET /api/admin/statistics/monthly-revenue` - Havi bevételi kimutatás
+
 ### Teszt
 
 - `GET /api/test/userdata` – Bejelentkezett felhasználó adatainak lekérdezése (**védett végpont**)  

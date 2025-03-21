@@ -35,6 +35,7 @@ namespace ParkingGarageAPI.Context
         {
             if (!Users.Any())
             {
+                // Normál felhasználó
                 var user = new User
                 {
                     Id = 1,
@@ -42,10 +43,24 @@ namespace ParkingGarageAPI.Context
                     LastName = "Doe",
                     PhoneNumber = "1234567890",
                     Email = "john.doe@example.com",
-                    PasswordHash = Convert.ToBase64String(Encoding.UTF8.GetBytes("Start123"))
+                    PasswordHash = Convert.ToBase64String(Encoding.UTF8.GetBytes("Start123")),
+                    IsAdmin = false
+                };
+                
+                // Admin felhasználó
+                var admin = new User
+                {
+                    Id = 2,
+                    FirstName = "Admin",
+                    LastName = "User",
+                    PhoneNumber = "0987654321",
+                    Email = "admin@example.com",
+                    PasswordHash = Convert.ToBase64String(Encoding.UTF8.GetBytes("Admin123")),
+                    IsAdmin = true
                 };
                 
                 Users.Add(user);
+                Users.Add(admin);
                 SaveChanges();
                 
                 Cars.Add(

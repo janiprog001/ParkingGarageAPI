@@ -21,6 +21,9 @@ namespace ParkingGarageAPI.Entities
         public string Email { get; set; }
         [Required]
         public string PasswordHash { get; set; }
+        
+        // Admin jogosultság
+        public bool IsAdmin { get; set; } = false;
 
         // Kapcsolat a Car entitással
         public ICollection<Car> Cars { get; set; }

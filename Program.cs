@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using ParkingGarageAPI.Context;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authorization;
+using ParkingGarageAPI.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +19,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LogoutPath = "/api/users/logout";
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("AdminOnly", policy => policy.Requirements.Add(new AdminRequirement()));
+});
+
+// Admin jogosultság kezelő regisztrálása
+builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
