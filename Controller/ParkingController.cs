@@ -148,6 +148,25 @@ public class ParkingController : ControllerBase
             // Kerekítés a legközelebbi 10 forintra
             parkingFee = Math.Ceiling(parkingFee / 10) * 10;
             
+            // Parkolási adatok mentése a történeti táblába
+            var history = new ParkingHistory
+            {
+                StartTime = parkingSpot.StartTime.Value,
+                EndTime = parkingSpot.EndTime.Value,
+                FloorNumber = parkingSpot.FloorNumber,
+                SpotNumber = parkingSpot.SpotNumber,
+                Fee = parkingFee,
+                CarId = car.Id,
+                CarBrand = car.Brand,
+                CarModel = car.Model,
+                LicensePlate = car.LicensePlate,
+                UserId = user.Id,
+                UserName = $"{user.FirstName} {user.LastName}",
+                UserEmail = user.Email
+            };
+            
+            _context.ParkingHistories.Add(history);
+            
             car.IsParked = false;
             parkingSpot.CarId = null;
             

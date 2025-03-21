@@ -11,6 +11,7 @@ namespace ParkingGarageAPI.Context
         public DbSet<User> Users { get; set; }
         public DbSet<Car> Cars { get; set; }
         public DbSet<ParkingSpot> ParkingSpots { get; set; }
+        public DbSet<ParkingHistory> ParkingHistories { get; set; }
 
         // Az entitások közötti kapcsolat konfigurálása
         protected override void OnModelCreating(ModelBuilder modelBuilder)

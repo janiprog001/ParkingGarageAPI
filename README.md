@@ -43,6 +43,13 @@ Ez a projekt egy parkológarázs-kezelő rendszer API-ját implementálja **ASP.
 - `POST /api/parking/end` - Parkolás befejezése
 - `GET /api/parking/my` - Felhasználó parkoló autóinak lekérdezése
 
+### Statisztikák
+
+- `GET /api/statistics/history` - Felhasználó parkolási előzményei
+- `GET /api/statistics/summary` - Parkolási összesítő
+- `GET /api/statistics/by-car` - Parkolási statisztikák autónként
+- `GET /api/statistics/monthly` - Havi parkolási statisztikák
+
 ### Teszt
 
 - `GET /api/test/userdata` – Bejelentkezett felhasználó adatainak lekérdezése (**védett végpont**)  
