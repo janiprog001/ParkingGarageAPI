@@ -6,13 +6,28 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using ParkingGarageAPI.Auth;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using DotNetEnv;
+
+// Környezeti változók betöltése a .env fájlból
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Connection string összeállítása a környezeti változókból
+var mysqlHost = Environment.GetEnvironmentVariable("MYSQL_HOST");
+var mysqlPort = Environment.GetEnvironmentVariable("MYSQL_PORT");
+var mysqlDb = Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+var mysqlUser = Environment.GetEnvironmentVariable("MYSQL_USER");
+var mysqlPass = Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
+var mysqlSslMode = Environment.GetEnvironmentVariable("MYSQL_SSL_MODE") ?? "required";
+
+// Connection string összeállítása
+var connectionString = $"server={mysqlHost};port={mysqlPort};database={mysqlDb};user={mysqlUser};password={mysqlPass};SslMode={mysqlSslMode}";
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
+        connectionString,
         new MySqlServerVersion(new Version(8, 0, 13)),
         mySqlOptions => mySqlOptions.EnableRetryOnFailure()
     ));
@@ -43,14 +58,9 @@ builder.Services.AddControllers()
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c => {
-    c.SwaggerDoc("v1", new() { Title = "Parking Garage API", Version = "v1" });
-    c.AddSecurityDefinition("cookieAuth", new OpenApiSecurityScheme {
-        Type = SecuritySchemeType.ApiKey,
-        In = ParameterLocation.Cookie,
-        Name = ".AspNetCore.Cookies",
-        Description = "Cookie authentication."
-    });
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ParkingGarage API", Version = "v1" });
 });
 
 // Add CORS
@@ -76,6 +86,8 @@ if (app.Environment.IsDevelopment())
 
 // Use CORS before authentication and authorization middleware
 app.UseCors("AllowFrontend");
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
