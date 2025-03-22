@@ -1,0 +1,25 @@
+# Fejlesztés során létrejött könyvtárak
+bin/
+obj/
+
+# Git könyvtárak
+.git
+.gitignore
+
+# VS és VS Code fájlok
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.suo
+
+# Környezeti változók és személyes beállítások
+.env
+appsettings.Development.json
+
+# Generált számla fájlok
+Invoices/
+
+# Egyéb fájlok
+README.md
+LICENSE 
