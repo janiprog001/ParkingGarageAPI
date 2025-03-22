@@ -25,7 +25,7 @@ namespace ParkingGarageAPI.Entities
         [JsonIgnore]
         public ParkingSpot? ParkingSpot { get; set; }
         
-        // Parkolás státusza
+        // Parkolás státusza - új autó regisztrációjakor alapértelmezetten nincs leparkolva
         public bool IsParked { get; set; } = false;
     }
 }

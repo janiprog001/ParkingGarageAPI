@@ -23,6 +23,15 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
         int newId = context.Users.Any() ? context.Users.Max(u => u.Id) + 1 : 1;
         user.Id = newId;
         
+        // Biztosítjuk, hogy minden autónak az IsParked értéke false legyen
+        if (user.Cars != null && user.Cars.Any())
+        {
+            foreach (var car in user.Cars)
+            {
+                car.IsParked = false;
+            }
+        }
+        
         user.PasswordHash = Convert.ToBase64String(Encoding.UTF8.GetBytes(user.PasswordHash));
         context.Users.Add(user);
         context.SaveChanges();

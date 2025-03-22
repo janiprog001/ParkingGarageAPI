@@ -119,27 +119,46 @@ public class ParkingController : ControllerBase
                 return BadRequest("Érvénytelen kérés");
                 
             var userEmail = User.FindFirstValue(ClaimTypes.Name);
-            var user = _context.Users
-                .Include(u => u.Cars)
-                .FirstOrDefault(u => u.Email == userEmail);
+            if (string.IsNullOrEmpty(userEmail))
+                return Unauthorized("Nem vagy bejelentkezve");
+                
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == userEmail);
                 
             if (user == null)
                 return NotFound("Felhasználó nem található");
+            
+            // Autó keresése
+            var car = await _context.Cars
+                .FirstOrDefaultAsync(c => c.Id == request.CarId && c.UserId == user.Id);
                 
-            var car = _context.Cars.FirstOrDefault(c => c.Id == request.CarId && c.UserId == user.Id);
             if (car == null)
-                return NotFound("Az autó nem található vagy nem a tiéd");
-                
+                return NotFound($"Az autó (ID: {request.CarId}) nem található vagy nem a tiéd");
+            
+            // Ellenőrizzük a parkolási állapotot
             if (!car.IsParked)
-                return BadRequest("Az autó nincs leparkolva");
-                
-            var parkingSpot = _context.ParkingSpots.FirstOrDefault(p => p.CarId == car.Id);
+                return BadRequest($"Az autó (ID: {request.CarId}) nincs leparkolva");
+            
+            // Parkolóhely keresése
+            var parkingSpot = await _context.ParkingSpots
+                .FirstOrDefaultAsync(p => p.CarId == car.Id);
+            
             if (parkingSpot == null)
-                return NotFound("A parkolóhely nem található");
-                
+            {
+                // Ha nincs parkolóhely, de az autó parkolva van, akkor javítsuk az inkonzisztenciát
+                car.IsParked = false;
+                await _context.SaveChangesAsync();
+                return BadRequest("Inkonzisztens állapot: az autó parkolva van, de nincs parkolóhely hozzárendelve. Az autó parkolási állapotát visszaállítottuk.");
+            }
+            
             // Parkolás befejezése
-            parkingSpot.IsOccupied = false;
+            if (parkingSpot.StartTime == null)
+            {
+                parkingSpot.StartTime = DateTime.Now.AddHours(-1); // Alapértelmezett: 1 órás parkolás
+            }
+                
             parkingSpot.EndTime = DateTime.Now;
+            parkingSpot.IsOccupied = false;
             
             // Időtartam számítása
             TimeSpan parkingDuration = parkingSpot.EndTime.Value - parkingSpot.StartTime.Value;
@@ -168,35 +187,62 @@ public class ParkingController : ControllerBase
                 UserEmail = user.Email
             };
             
-            _context.ParkingHistories.Add(history);
-            
+            // Mentés előtt frissítsük a kapcsolódó entitások állapotát
             car.IsParked = false;
-            parkingSpot.CarId = null;
             
+            // Előbb mentsük a history objektumot
+            _context.ParkingHistories.Add(history);
             await _context.SaveChangesAsync();
             
-            // Számla generálása
-            var invoice = await _invoiceService.CreateInvoiceAsync(history);
-            
-            // Email küldése (aszinkron módon a háttérben, nem várjuk meg a befejezését)
-            _ = Task.Run(async () => 
+            // Ezután frissítsük a parkolóhelyet
+            parkingSpot.CarId = null;
+            try
             {
-                await _invoiceService.SendInvoiceByEmailAsync(invoice);
-            });
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                var innerException = ex.InnerException != null ? ex.InnerException.Message : "Nincs belső kivétel";
+                return StatusCode(500, $"Parkolóhely frissítési hiba: {ex.Message}. Belső hiba: {innerException}");
+            }
             
-            return Ok(new {
-                message = "Parkolás befejezve",
-                startTime = parkingSpot.StartTime,
-                endTime = parkingSpot.EndTime,
-                duration = $"{parkingDuration.Hours} óra {parkingDuration.Minutes} perc",
-                fee = $"{parkingFee} Ft",
-                rate = "600 Ft/óra",
-                invoiceNumber = invoice.InvoiceNumber
-            });
+            try
+            {
+                // Számla generálása
+                var invoice = await _invoiceService.CreateInvoiceAsync(history);
+                
+                // Email küldése (aszinkron módon a háttérben, nem várjuk meg a befejezését)
+                _ = Task.Run(async () => 
+                {
+                    try
+                    {
+                        await _invoiceService.SendInvoiceByEmailAsync(invoice);
+                    }
+                    catch (Exception emailEx)
+                    {
+                        Console.WriteLine($"Email küldési hiba: {emailEx.Message}");
+                    }
+                });
+                
+                return Ok(new {
+                    message = "Parkolás befejezve",
+                    startTime = parkingSpot.StartTime,
+                    endTime = parkingSpot.EndTime,
+                    duration = $"{parkingDuration.Hours} óra {parkingDuration.Minutes} perc",
+                    fee = $"{parkingFee} Ft",
+                    rate = "600 Ft/óra",
+                    invoiceNumber = invoice.InvoiceNumber
+                });
+            }
+            catch (Exception ex)
+            {
+                var innerException = ex.InnerException != null ? ex.InnerException.Message : "Nincs belső kivétel";
+                return StatusCode(500, $"Számla generálási hiba: {ex.Message}. Belső hiba: {innerException}");
+            }
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Belső szerverhiba: {ex.Message}");
+            return StatusCode(500, $"Belső szerverhiba: {ex.Message}. StackTrace: {ex.StackTrace}");
         }
     }
     

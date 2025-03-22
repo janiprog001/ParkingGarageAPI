@@ -5,12 +5,17 @@ using ParkingGarageAPI.Context;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using ParkingGarageAPI.Auth;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("ParkingGarageDB"));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 13)),
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure()
+    ));
 
 // Hitelesítés bekapcsolása
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

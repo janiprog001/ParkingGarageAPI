@@ -28,28 +28,33 @@ namespace ParkingGarageAPI.Context
                 .HasOne(p => p.Car)
                 .WithOne(c => c.ParkingSpot)
                 .HasForeignKey<ParkingSpot>(p => p.CarId)
-                .IsRequired(false);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
             
             modelBuilder.Entity<Invoice>()
-                .HasOne<ParkingHistory>()
+                .HasOne(i => i.ParkingHistory)
                 .WithMany()
-                .HasForeignKey(i => i.ParkingHistoryId);
+                .HasForeignKey(i => i.ParkingHistoryId)
+                .OnDelete(DeleteBehavior.Restrict);
             
             modelBuilder.Entity<Invoice>()
-                .HasOne<User>()
+                .HasOne(i => i.User)
                 .WithMany()
-                .HasForeignKey(i => i.UserId);
+                .HasForeignKey(i => i.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         
         // Seed metódus
         public void Seed()
         {
+            // Ellenőrizzük, hogy az adatbázis létrejött-e
+            Database.EnsureCreated();
+            
             if (!Users.Any())
             {
                 // Normál felhasználó
                 var user = new User
                 {
-                    Id = 1,
                     FirstName = "John",
                     LastName = "Doe",
                     PhoneNumber = "1234567890",
@@ -61,7 +66,6 @@ namespace ParkingGarageAPI.Context
                 // Admin felhasználó
                 var admin = new User
                 {
-                    Id = 2,
                     FirstName = "Admin",
                     LastName = "User",
                     PhoneNumber = "0987654321",
@@ -77,7 +81,6 @@ namespace ParkingGarageAPI.Context
                 Cars.Add(
                     new Car
                     {
-                        Id = 1,
                         Brand = "Toyota",
                         Model = "Corolla",
                         Year = 2020,

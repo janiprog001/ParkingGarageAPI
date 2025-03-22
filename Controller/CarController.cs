@@ -84,6 +84,9 @@ public class CarController : ControllerBase
                 int newId = _context.Cars.Any() ? _context.Cars.Max(c => c.Id) + 1 : 1;
                 car.Id = newId;
             }
+            
+            // Biztosítjuk, hogy az IsParked értéke mindig false legyen új autó esetén
+            car.IsParked = false;
                 
             car.UserId = user.Id;
             _context.Cars.Add(car);

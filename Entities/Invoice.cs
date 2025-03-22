@@ -35,13 +35,13 @@ namespace ParkingGarageAPI.Entities
         public int ParkingHistoryId { get; set; }
         
         [JsonIgnore]
-        public ParkingHistory ParkingHistory { get; set; }
+        public virtual ParkingHistory? ParkingHistory { get; set; }
         
         // Kapcsolat a felhasználóval
         public int UserId { get; set; }
         
         [JsonIgnore]
-        public User User { get; set; }
+        public virtual User? User { get; set; }
         
         // Email küldési információk
         public bool EmailSent { get; set; } = false;
