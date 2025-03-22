@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen(c => {
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins", builder =>
+    options.AddPolicy("AllowFrontend", builder =>
     {
         builder.WithOrigins("http://localhost:5173") // Replace with your allowed domains
               .AllowAnyHeader()
@@ -75,7 +75,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Use CORS before authentication and authorization middleware
-app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
