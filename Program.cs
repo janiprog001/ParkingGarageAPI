@@ -50,6 +50,17 @@ builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
 builder.Services.AddScoped<ParkingGarageAPI.Services.IEmailService, ParkingGarageAPI.Services.EmailService>();
 builder.Services.AddScoped<ParkingGarageAPI.Services.IInvoiceService, ParkingGarageAPI.Services.InvoiceService>();
 
+// CORS konfigurálása
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -63,18 +74,6 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ParkingGarage API", Version = "v1" });
 });
 
-// Add CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", builder =>
-    {
-        builder.WithOrigins("http://localhost:5173") // Replace with your allowed domains
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -84,10 +83,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Use CORS before authentication and authorization middleware
-app.UseCors("AllowFrontend");
+// A Render-en futunk, ezért ne próbáljunk HTTPS-re átirányítani
+var isRunningOnRender = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RENDER"));
+if (!isRunningOnRender)
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
+// CORS engedélyezése
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

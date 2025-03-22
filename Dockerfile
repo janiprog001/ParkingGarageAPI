@@ -17,6 +17,7 @@ COPY --from=build /app ./
 # Környezeti változók beállítása - ezeket majd a Render felületen is meg kell adni
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV RENDER=true
 
 # A port kiajánlása
 EXPOSE 8080
