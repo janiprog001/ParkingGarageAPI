@@ -5,6 +5,7 @@ using ParkingGarageAPI.Context;
 using ParkingGarageAPI.Entities;
 using System.Security.Claims;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ParkingGarageAPI.Controller;
 
@@ -40,8 +41,19 @@ public class CarController : ControllerBase
             {
                 user.Cars = new List<Car>();
             }
+            
+            // Átalakítjuk az adatokat, hogy minden mező (beleértve az ID-t is) látható legyen
+            var formattedCars = user.Cars.Select(c => new
+            {
+                c.Id,
+                c.Brand,
+                c.Model,
+                c.Year,
+                c.LicensePlate,
+                c.IsParked
+            }).ToList();
                 
-            return Ok(user.Cars);
+            return Ok(formattedCars);
         }
         catch (Exception ex)
         {
@@ -65,12 +77,33 @@ public class CarController : ControllerBase
             
             if (user == null)
                 return NotFound("User not found.");
+            
+            // Generálunk ID-t, ha nincs megadva
+            if (car.Id <= 0)
+            {
+                int newId = _context.Cars.Any() ? _context.Cars.Max(c => c.Id) + 1 : 1;
+                car.Id = newId;
+            }
                 
             car.UserId = user.Id;
             _context.Cars.Add(car);
             _context.SaveChanges();
             
-            return Ok("Car added successfully.");
+            // Visszadjuk az új autó adatait, beleértve az ID-t is
+            return Ok(new
+            {
+                message = "Car added successfully.",
+                car = new
+                {
+                    car.Id,
+                    car.Brand,
+                    car.Model,
+                    car.Year,
+                    car.LicensePlate,
+                    car.UserId,
+                    car.IsParked
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -105,6 +138,36 @@ public class CarController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    [HttpGet("all")]
+    [Authorize(Policy = "AdminOnly")]
+    public IActionResult GetAllCars()
+    {
+        try
+        {
+            var cars = _context.Cars.Include(c => c.User).ToList();
+            
+            // Eltávolítjuk a referencia hurkokat a JSON szerializáláskor
+            var carsWithoutCycles = cars.Select(c => new
+            {
+                c.Id,
+                c.Brand,
+                c.Model,
+                c.Year,
+                c.LicensePlate,
+                c.UserId,
+                c.IsParked,
+                UserName = c.User != null ? $"{c.User.FirstName} {c.User.LastName}" : "Unknown",
+                UserEmail = c.User != null ? c.User.Email : "Unknown"
+            }).ToList();
+            
+            return Ok(carsWithoutCycles);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Belső szerverhiba: {ex.Message}");
         }
     }
 } 

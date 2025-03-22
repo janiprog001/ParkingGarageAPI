@@ -12,6 +12,7 @@ namespace ParkingGarageAPI.Context
         public DbSet<Car> Cars { get; set; }
         public DbSet<ParkingSpot> ParkingSpots { get; set; }
         public DbSet<ParkingHistory> ParkingHistories { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
 
         // Az entitások közötti kapcsolat konfigurálása
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,6 +29,16 @@ namespace ParkingGarageAPI.Context
                 .WithOne(c => c.ParkingSpot)
                 .HasForeignKey<ParkingSpot>(p => p.CarId)
                 .IsRequired(false);
+            
+            modelBuilder.Entity<Invoice>()
+                .HasOne<ParkingHistory>()
+                .WithMany()
+                .HasForeignKey(i => i.ParkingHistoryId);
+            
+            modelBuilder.Entity<Invoice>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(i => i.UserId);
         }
         
         // Seed metódus

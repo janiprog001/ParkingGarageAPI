@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using ParkingGarageAPI.Context;
 using ParkingGarageAPI.Entities;
+using ParkingGarageAPI.Services;
 using System.Security.Claims;
 
 namespace ParkingGarageAPI.Controller;
@@ -13,10 +14,12 @@ namespace ParkingGarageAPI.Controller;
 public class ParkingController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IInvoiceService _invoiceService;
     
-    public ParkingController(ApplicationDbContext context)
+    public ParkingController(ApplicationDbContext context, IInvoiceService invoiceService)
     {
         _context = context;
+        _invoiceService = invoiceService;
     }
     
     // Szabad parkolóhelyek lekérdezése
@@ -108,7 +111,7 @@ public class ParkingController : ControllerBase
     
     // Parkolás befejezése
     [HttpPost("end")]
-    public IActionResult EndParking([FromBody] EndParkingRequest request)
+    public async Task<IActionResult> EndParking([FromBody] EndParkingRequest request)
     {
         try
         {
@@ -138,7 +141,7 @@ public class ParkingController : ControllerBase
             parkingSpot.IsOccupied = false;
             parkingSpot.EndTime = DateTime.Now;
             
-            // Parkolási díj számítása
+            // Időtartam számítása
             TimeSpan parkingDuration = parkingSpot.EndTime.Value - parkingSpot.StartTime.Value;
             
             // Percenkénti díjszámítás (600 Ft/óra = 10 Ft/perc)
@@ -170,7 +173,16 @@ public class ParkingController : ControllerBase
             car.IsParked = false;
             parkingSpot.CarId = null;
             
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+            
+            // Számla generálása
+            var invoice = await _invoiceService.CreateInvoiceAsync(history);
+            
+            // Email küldése (aszinkron módon a háttérben, nem várjuk meg a befejezését)
+            _ = Task.Run(async () => 
+            {
+                await _invoiceService.SendInvoiceByEmailAsync(invoice);
+            });
             
             return Ok(new {
                 message = "Parkolás befejezve",
@@ -178,7 +190,8 @@ public class ParkingController : ControllerBase
                 endTime = parkingSpot.EndTime,
                 duration = $"{parkingDuration.Hours} óra {parkingDuration.Minutes} perc",
                 fee = $"{parkingFee} Ft",
-                rate = "600 Ft/óra"
+                rate = "600 Ft/óra",
+                invoiceNumber = invoice.InvoiceNumber
             });
         }
         catch (Exception ex)

@@ -19,6 +19,10 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
         if (context.Users.Any(u => u.Email == user.Email))
             return BadRequest("Email already registered.");
 
+        // Generálunk egy új egyedi ID-t
+        int newId = context.Users.Any() ? context.Users.Max(u => u.Id) + 1 : 1;
+        user.Id = newId;
+        
         user.PasswordHash = Convert.ToBase64String(Encoding.UTF8.GetBytes(user.PasswordHash));
         context.Users.Add(user);
         context.SaveChanges();

@@ -26,6 +26,10 @@ builder.Services.AddAuthorization(options => {
 // Admin jogosultság kezelő regisztrálása
 builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
 
+// Email és számlázási szolgáltatások regisztrálása
+builder.Services.AddScoped<ParkingGarageAPI.Services.IEmailService, ParkingGarageAPI.Services.EmailService>();
+builder.Services.AddScoped<ParkingGarageAPI.Services.IInvoiceService, ParkingGarageAPI.Services.InvoiceService>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

@@ -58,6 +58,14 @@ Ez a projekt egy parkológarázs-kezelő rendszer API-ját implementálja **ASP.
 - `GET /api/admin/statistics/user-activity` - Felhasználói aktivitás kimutatás
 - `GET /api/admin/statistics/monthly-revenue` - Havi bevételi kimutatás
 
+### Számlázás
+
+- `GET /api/invoices` - Felhasználó számláinak lekérdezése
+- `GET /api/invoices/{id}` - Számla részleteinek lekérdezése
+- `GET /api/invoices/{id}/download` - Számla letöltése PDF formátumban
+- `POST /api/invoices/{id}/resend` - Számla újraküldése emailben (csak admin)
+- `PUT /api/invoices/{id}/status` - Számla státuszának módosítása (csak admin)
+
 ### Teszt
 
 - `GET /api/test/userdata` – Bejelentkezett felhasználó adatainak lekérdezése (**védett végpont**)  
