@@ -16,11 +16,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // MySQL kapcsolat
 var connectionString = $"server={Environment.GetEnvironmentVariable("MYSQL_HOST")};" +
-                     $"port={Environment.GetEnvironmentVariable("MYSQL_PORT")};" +
-                     $"database={Environment.GetEnvironmentVariable("MYSQL_DATABASE")};" +
-                     $"user={Environment.GetEnvironmentVariable("MYSQL_USER")};" +
-                     $"password={Environment.GetEnvironmentVariable("MYSQL_PASSWORD")};" +
-                     $"SslMode={Environment.GetEnvironmentVariable("MYSQL_SSL_MODE") ?? "REQUIRED"}";
+                    $"port={Environment.GetEnvironmentVariable("MYSQL_PORT")};" +
+                    $"database={Environment.GetEnvironmentVariable("MYSQL_DATABASE")};" +
+                    $"user={Environment.GetEnvironmentVariable("MYSQL_USER")};" +
+                    $"password={Environment.GetEnvironmentVariable("MYSQL_PASSWORD")};" +
+                    $"SslMode={Environment.GetEnvironmentVariable("MYSQL_SSL_MODE") ?? "REQUIRED"}";
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -44,17 +44,6 @@ builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
 builder.Services.AddScoped<ParkingGarageAPI.Services.IEmailService, ParkingGarageAPI.Services.EmailService>();
 builder.Services.AddScoped<ParkingGarageAPI.Services.IInvoiceService, ParkingGarageAPI.Services.InvoiceService>();
 
-// CORS konfigurálása
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
-
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -71,12 +60,11 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(builder =>
     {
         builder.WithOrigins("http://localhost:5175")
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials();
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
-
 
 var app = builder.Build();
 
@@ -87,14 +75,6 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "ParkingGarage API v1");
     c.RoutePrefix = string.Empty;
 });
-
-// A Render-en futunk, ezért ne próbáljunk HTTPS-re átirányítani
-var isRunningOnRender = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RENDER"));
-if (!isRunningOnRender)
-{
-    app.UseHttpsRedirection();
-}
-
 
 app.UseCors();
 app.UseAuthentication();
