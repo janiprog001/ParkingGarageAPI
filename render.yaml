@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: parking-garage-api
+    env: docker
+    repo: https://github.com/USERNAME/ParkingGarageAPI.git  # Cseréld ki a saját repo URL-edre
+    branch: main  # Vagy a branch-re, ahonnan telepíteni szeretnéd
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health  # Adj hozzá egy health check végpontot az API-hoz
+    envVars:
+      - key: MYSQL_HOST
+        value: mysql-parking-garage-api.aivencloud.com
+      - key: MYSQL_PORT
+        value: 17581
+      - key: MYSQL_DATABASE
+        value: ParkingGarageDB
+      - key: MYSQL_USER
+        value: avnadmin
+      - key: MYSQL_PASSWORD
+        sync: false  # Ezt a Render UI-on kell beállítani biztonsági okokból
+      - key: MYSQL_SSL_MODE
+        value: required
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production 

@@ -44,6 +44,17 @@ builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
 builder.Services.AddScoped<ParkingGarageAPI.Services.IEmailService, ParkingGarageAPI.Services.EmailService>();
 builder.Services.AddScoped<ParkingGarageAPI.Services.IInvoiceService, ParkingGarageAPI.Services.InvoiceService>();
 
+// CORS konfigurálása
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -66,6 +77,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 var app = builder.Build();
 
 // Swagger mindig elérhető
@@ -75,6 +87,14 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "ParkingGarage API v1");
     c.RoutePrefix = string.Empty;
 });
+
+// A Render-en futunk, ezért ne próbáljunk HTTPS-re átirányítani
+var isRunningOnRender = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RENDER"));
+if (!isRunningOnRender)
+{
+    app.UseHttpsRedirection();
+}
+
 
 app.UseCors();
 app.UseAuthentication();
