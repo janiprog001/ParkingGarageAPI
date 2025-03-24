@@ -7,32 +7,26 @@ using Microsoft.AspNetCore.Authorization;
 using ParkingGarageAPI.Auth;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using DotNetEnv;
+using Microsoft.AspNetCore.HttpOverrides;
 
 // Környezeti változók betöltése a .env fájlból
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connection string összeállítása a környezeti változókból
-var mysqlHost = Environment.GetEnvironmentVariable("MYSQL_HOST");
-var mysqlPort = Environment.GetEnvironmentVariable("MYSQL_PORT");
-var mysqlDb = Environment.GetEnvironmentVariable("MYSQL_DATABASE");
-var mysqlUser = Environment.GetEnvironmentVariable("MYSQL_USER");
-var mysqlPass = Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
-var mysqlSslMode = Environment.GetEnvironmentVariable("MYSQL_SSL_MODE") ?? "required";
-
-// Connection string összeállítása
-var connectionString = $"server={mysqlHost};port={mysqlPort};database={mysqlDb};user={mysqlUser};password={mysqlPass};SslMode={mysqlSslMode}";
+// MySQL kapcsolat
+var connectionString = $"server={Environment.GetEnvironmentVariable("MYSQL_HOST")};" +
+                     $"port={Environment.GetEnvironmentVariable("MYSQL_PORT")};" +
+                     $"database={Environment.GetEnvironmentVariable("MYSQL_DATABASE")};" +
+                     $"user={Environment.GetEnvironmentVariable("MYSQL_USER")};" +
+                     $"password={Environment.GetEnvironmentVariable("MYSQL_PASSWORD")};" +
+                     $"SslMode={Environment.GetEnvironmentVariable("MYSQL_SSL_MODE") ?? "REQUIRED"}";
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(
-        connectionString,
-        new MySqlServerVersion(new Version(8, 0, 13)),
-        mySqlOptions => mySqlOptions.EnableRetryOnFailure()
-    ));
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 13))));
 
-// Hitelesítés bekapcsolása
+// Hitelesítés
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
         options.LoginPath = "/api/users/login";
@@ -53,42 +47,36 @@ builder.Services.AddScoped<ParkingGarageAPI.Services.IInvoiceService, ParkingGar
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Swagger mindig elérhető
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ParkingGarage API", Version = "v1" });
-});
+builder.Services.AddSwaggerGen();
 
-// Add CORS
+// CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", builder =>
+    options.AddDefaultPolicy(builder =>
     {
-        builder.WithOrigins("http://localhost:5173") // Replace with your allowed domains
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        builder.WithOrigins("http://localhost:5175")
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Swagger mindig elérhető
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ParkingGarage API v1");
+    c.RoutePrefix = string.Empty;
+});
 
-// Use CORS before authentication and authorization middleware
-app.UseCors("AllowFrontend");
-
-app.UseHttpsRedirection();
-
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -97,9 +85,12 @@ app.MapControllers();
 // Adatbázis seed
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     context.Seed();
 }
+
+// Lokális fejlesztéshez port beállítása
+app.Urls.Clear();
+app.Urls.Add("http://localhost:5025");
 
 app.Run();
