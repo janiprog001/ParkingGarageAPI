@@ -91,23 +91,35 @@ namespace ParkingGarageAPI.Context
                 SaveChanges();
             }
             
-            // ParkingSpot-ok hozzáadása, ha még nincsenek
-            if (!ParkingSpots.Any())
-            {
-                for (int floor = 1; floor <= 2; floor++)
+        // if (!ParkingSpots.Any())
+        //     {
+            ParkingSpots.RemoveRange(ParkingSpots);
+            SaveChanges();
+
+            // Reseteljük az ID számlálót MySQL-ben
+            Database.ExecuteSqlRaw("ALTER TABLE ParkingSpots AUTO_INCREMENT = 1");
+
+            
+                for (int floor = 1; floor <= 3; floor++)  // 3 emelet
                 {
-                    for (int spot = 1; spot <= 10; spot++)
+                    for (int row = 0; row < 4; row++)     // 4 sor (A-D)
                     {
-                        ParkingSpots.Add(new ParkingSpot
+                        for (int col = 1; col <= 5; col++) // 5 oszlop per sor
                         {
-                            FloorNumber = floor.ToString(),
-                            SpotNumber = spot.ToString("D2"),
-                            IsOccupied = false
-                        });
+                            string spotLetter = ((char)('A' + row)).ToString();
+                            string spotNumber = $"{spotLetter}{col:D2}";  // pl: A01, B02, stb.
+                            
+                            ParkingSpots.Add(new ParkingSpot
+                            {
+                                FloorNumber = floor.ToString(),
+                                SpotNumber = spotNumber,
+                                IsOccupied = false
+                            });
+                        }
                     }
                 }
                 SaveChanges();
-            }
+            // }
         }
     }
 }
