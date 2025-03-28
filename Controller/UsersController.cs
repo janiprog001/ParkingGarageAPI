@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ParkingGarageAPI.Context;
 using ParkingGarageAPI.DTOs;
@@ -32,6 +33,9 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
             }
         }
         
+        // Explicit módon beállítjuk az IsAdmin értékét false-ra
+        user.IsAdmin = false;
+        
         user.PasswordHash = Convert.ToBase64String(Encoding.UTF8.GetBytes(user.PasswordHash));
         context.Users.Add(user);
         context.SaveChanges();
@@ -48,7 +52,11 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
         var loginTime = DateTime.UtcNow;
         var expiresAt = loginTime.AddMinutes(5); // 5 percig érvényes sütik
 
-        var claims = new List<Claim> { new Claim(ClaimTypes.Name, foundUser.Email) };
+        var claims = new List<Claim> 
+        { 
+            new Claim(ClaimTypes.Name, foundUser.Email),
+            new Claim(ClaimTypes.Role, foundUser.IsAdmin ? "Admin" : "User")
+        };
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var authProperties = new AuthenticationProperties 
         { 
@@ -66,6 +74,7 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
         { 
             Message = "Login successful.", 
             User = foundUser.Email,
+            IsAdmin = foundUser.IsAdmin,
             LoginTime = loginTime.ToString("HH:mm:ss"),
             ExpiresAt = expiresAt.ToString("HH:mm:ss")
         });
