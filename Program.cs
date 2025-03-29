@@ -15,7 +15,32 @@ Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 // MySQL kapcsolat
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var host = Environment.GetEnvironmentVariable("MYSQL_HOST");
+var port = Environment.GetEnvironmentVariable("MYSQL_PORT");
+var database = Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+var user = Environment.GetEnvironmentVariable("MYSQL_USER");
+var password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
+var sslMode = Environment.GetEnvironmentVariable("MYSQL_SSL_MODE") ?? "REQUIRED";
+
+// Ellenőrizzük és naplózzuk a környezeti változókat
+Console.WriteLine($"MYSQL_HOST: {host}");
+Console.WriteLine($"MYSQL_PORT: {port}");
+Console.WriteLine($"MYSQL_DATABASE: {database}");
+Console.WriteLine($"MYSQL_USER: {user}");
+Console.WriteLine($"MYSQL_SSL_MODE: {sslMode}");
+
+if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(port) || string.IsNullOrEmpty(database) || 
+    string.IsNullOrEmpty(user) || string.IsNullOrEmpty(password))
+{
+    throw new Exception("Missing required environment variables for database connection");
+}
+
+var connectionString = $"Server={host};" +
+                      $"Port={port};" +
+                      $"Database={database};" +
+                      $"User={user};" +
+                      $"Password={password};" +
+                      $"SslMode={sslMode}";
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
