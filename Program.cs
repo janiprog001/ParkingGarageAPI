@@ -15,12 +15,7 @@ Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 // MySQL kapcsolat
-var connectionString = $"server={Environment.GetEnvironmentVariable("MYSQL_HOST")};" +
-                    $"port={Environment.GetEnvironmentVariable("MYSQL_PORT")};" +
-                    $"database={Environment.GetEnvironmentVariable("MYSQL_DATABASE")};" +
-                    $"user={Environment.GetEnvironmentVariable("MYSQL_USER")};" +
-                    $"password={Environment.GetEnvironmentVariable("MYSQL_PASSWORD")};" +
-                    $"SslMode={Environment.GetEnvironmentVariable("MYSQL_SSL_MODE") ?? "REQUIRED"}";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
