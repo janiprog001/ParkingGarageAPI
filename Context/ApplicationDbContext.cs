@@ -91,25 +91,27 @@ namespace ParkingGarageAPI.Context
                 SaveChanges();
             }
             
-        // if (!ParkingSpots.Any())
-        //     {
-            ParkingSpots.RemoveRange(ParkingSpots);
-            SaveChanges();
+            if (!ParkingSpots.Any())
+            {
+                // Töröljük a meglévő parkolóhelyeket
+                ParkingSpots.RemoveRange(ParkingSpots);
+                SaveChanges();
 
-            // Reseteljük az ID számlálót MySQL-ben
-            Database.ExecuteSqlRaw("ALTER TABLE ParkingSpots AUTO_INCREMENT = 1");
-
-            
-                for (int floor = 1; floor <= 3; floor++)  // 3 emelet
+                // Reseteljük az ID számlálót MySQL-ben
+                Database.ExecuteSqlRaw("ALTER TABLE ParkingSpots AUTO_INCREMENT = 1");
+                
+                // Létrehozzuk a parkolóhelyeket batch-ekben
+                var spots = new List<ParkingSpot>();
+                for (int floor = 1; floor <= 3; floor++)
                 {
-                    for (int row = 0; row < 4; row++)     // 4 sor (A-D)
+                    for (int row = 0; row < 4; row++)
                     {
-                        for (int col = 1; col <= 5; col++) // 5 oszlop per sor
+                        for (int col = 1; col <= 5; col++)
                         {
                             string spotLetter = ((char)('A' + row)).ToString();
-                            string spotNumber = $"{spotLetter}{col:D2}";  // pl: A01, B02, stb.
+                            string spotNumber = $"{spotLetter}{col:D2}";
                             
-                            ParkingSpots.Add(new ParkingSpot
+                            spots.Add(new ParkingSpot
                             {
                                 FloorNumber = floor.ToString(),
                                 SpotNumber = spotNumber,
@@ -117,9 +119,13 @@ namespace ParkingGarageAPI.Context
                             });
                         }
                     }
+                    
+                    // Minden emeletenként mentjük a batch-et
+                    ParkingSpots.AddRange(spots);
+                    SaveChanges();
+                    spots.Clear();
                 }
-                SaveChanges();
-            // }
+            }
         }
     }
 }

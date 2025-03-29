@@ -107,12 +107,41 @@ app.MapControllers();
 // Adatbázis seed
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    context.Seed();
+    try 
+    {
+        Console.WriteLine("Starting database seeding...");
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        
+        // Növeljük a timeout-ot
+        context.Database.SetCommandTimeout(300); // 5 perc timeout
+        
+        // Ellenőrizzük, hogy szükséges-e a seed
+        if (!context.ParkingSpots.Any())
+        {
+            Console.WriteLine("No parking spots found, starting seed...");
+            context.Seed();
+            Console.WriteLine("Database seeding completed successfully.");
+        }
+        else
+        {
+            Console.WriteLine("Database already seeded, skipping...");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error during database seeding: {ex.Message}");
+        throw;
+    }
 }
 
 // Lokális fejlesztéshez port beállítása
 app.Urls.Clear();
 app.Urls.Add("http://localhost:5025");
+
+// Növeljük az alkalmazás timeout-át
+app.Lifetime.ApplicationStopping.Register(() =>
+{
+    Console.WriteLine("Application is shutting down...");
+});
 
 app.Run();
