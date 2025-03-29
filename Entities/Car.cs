@@ -20,7 +20,7 @@ namespace ParkingGarageAPI.Entities
         
         [Required]
         [JsonPropertyName("year")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int Year { get; set; }
         
         [Required]
