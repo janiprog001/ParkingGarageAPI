@@ -80,8 +80,11 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.WithOrigins("http://localhost:5173")
-        // builder.WithOrigins("https://parking-garage-app.netlify.app")
+        builder.WithOrigins(
+                "http://localhost:5173",
+                "https://parking-garage-app.netlify.app",
+                "https://*.onrender.com"
+            )
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -136,7 +139,7 @@ using (var scope = app.Services.CreateScope())
 
 // Lokális fejlesztéshez port beállítása
 app.Urls.Clear();
-app.Urls.Add("http://localhost:5025");
+app.Urls.Add("http://0.0.0.0:5025");
 
 // Növeljük az alkalmazás timeout-át
 app.Lifetime.ApplicationStopping.Register(() =>
