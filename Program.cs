@@ -24,9 +24,10 @@ var connectionString = $"server={Environment.GetEnvironmentVariable("MYSQL_HOST"
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 13))));
+    options.UseMySql(connectionString, 
+    new MySqlServerVersion(new Version(8, 0, 13)),
+     mySqlOptions => mySqlOptions.EnableRetryOnFailure()));
 
-// Hitelesítés
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
         options.LoginPath = "/api/users/login";
@@ -60,6 +61,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(builder =>
     {
         builder.WithOrigins("http://localhost:5173")
+        // builder.WithOrigins("https://parking-garage-app.netlify.app")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
