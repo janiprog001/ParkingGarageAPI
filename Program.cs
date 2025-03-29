@@ -52,6 +52,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options => {
         options.LoginPath = "/api/users/login";
         options.LogoutPath = "/api/users/logout";
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.Domain = ".netlify.app"; // Add your domain
     });
 
 builder.Services.AddAuthorization(options => {
