@@ -83,6 +83,7 @@ builder.Services.AddCors(options =>
         builder.WithOrigins(
                 "http://localhost:5173",
                 "https://parking-garage-app.netlify.app",
+                "https://*.netlify.app",
                 "https://*.onrender.com"
             )
             .AllowAnyMethod()
