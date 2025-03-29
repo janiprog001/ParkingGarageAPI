@@ -1,6 +1,6 @@
 # Parking Garage API
 
-## Projektről
+## A Projektről
 
 Ez a projekt egy parkológarázs-kezelő rendszer API-ját implementálja **ASP.NET Core** technológiával. Az API lehetővé teszi a felhasználók regisztrációját, bejelentkezését és kijelentkezését, valamint az autók és parkolóhelyek kezelését.
 
@@ -9,17 +9,38 @@ Ez a projekt egy parkológarázs-kezelő rendszer API-ját implementálja **ASP.
 - **Felhasználókezelés**: Regisztráció, bejelentkezés, kijelentkezés  
 - **Autókezelés**: Autók hozzáadása, listázása, törlése
 - **Parkolókezelés**: Parkolóhelyek kezelése, parkolás kezdése és befejezése, parkolási díj számítása
+- **Admin felület**: a rendszer kezeléséhez 
+- **Email** értesítések küldése
+- **PDF** számlák generálása
 - **Adatbázis**: In-memory adatbázis fejlesztési célokra  
 - **Hitelesítés**: Cookie alapú hitelesítés  
-- **API Dokumentáció**: Swagger integráció  
+- **API Dokumentáció**: Swagger integráció
 
 ## Telepítés és futtatás
 
 1. Clone-olja a repository-t  
+```bash
+git clone https://github.com/yourusername/ParkingGarageAPI.git
+```
 2. Nyissa meg a solution-t **Visual Studio 2022-ben**  
-3. Építse fel a projektet  
-4. Futtassa a projektet, és látogasson el a **Swagger UI-ra**:  
-   [`http://localhost:5025/swagger`](http://localhost:5025/swagger)  
+3. Telepítse a függőségeket:
+```bash
+dotnet restore
+```
+
+4. Állítsa be a környezeti változókat:
+```bash
+cp .env.example .env
+```
+Módosítsa a .env fájlt a saját beállításaival.
+
+5. Futtassa az alkalmazást:
+```bash
+dotnet run
+```    
+  
+6. Látogasson el a **Swagger UI-ra**:  
+   [`http://localhost:5025/swagger`](http://localhost:5025/swagger)
 
 ## API végpontok
 
@@ -74,5 +95,53 @@ Ez a projekt egy parkológarázs-kezelő rendszer API-ját implementálja **ASP.
 
 - **ASP.NET Core 8.0**  
 - **Entity Framework Core**  
+- **MySQL (Aiven)**
 - **Cookie Authentication**  
 - **Swagger / OpenAPI**  
+- **JWT Authentication**
+- **iTextSharp (PDF generálás)**
+- **SMTP (Email küldés)**
+
+## Környezeti változók
+
+Az alkalmazás a következő környezeti változókat használja:
+
+- `MYSQL_HOST`: MySQL szerver címe
+- `MYSQL_PORT`: MySQL port
+- `MYSQL_DATABASE`: Adatbázis neve
+- `MYSQL_USER`: Adatbázis felhasználónév
+- `MYSQL_PASSWORD`: Adatbázis jelszó
+- `MYSQL_SSL_MODE`: SSL mód (REQUIRED/OPTIONAL)
+
+## API Dokumentáció
+
+Az API dokumentáció elérhető a Swagger UI-on:
+```
+http://localhost:5025/swagger
+```
+
+## Deployment
+
+Az alkalmazás sikeresen deployolva van a következő platformokon:
+
+- Backend: Render (https://parking-garage.onrender.com)
+- Frontend: Netlify (https://parking-garage-app.netlify.app)
+- Adatbázis: Aiven MySQL
+
+<!-- A deployment sikeresen működik, és minden szolgáltatás megfelelően kommunikál egymással:
+- A Render-en futó API sikeresen kapcsolódik az Aiven MySQL adatbázishoz
+- A Netlify-on futó frontend sikeresen kommunikál a Render-en futó API-val
+- A CORS beállítások megfelelően konfigurálva vannak a különböző domainek közötti kommunikációhoz
+
+## Fejlesztői környezet
+
+A fejlesztői környezet beállításához:
+
+1. Telepítse a .NET 8 SDK-t
+2. Telepítse a MySQL-t lokálisan vagy használjon egy távoli MySQL szervert
+3. Állítsa be a környezeti változókat
+4. Futtassa az alkalmazást a `dotnet run` paranccsal -->
+
+## Licensz
+
+MIT
