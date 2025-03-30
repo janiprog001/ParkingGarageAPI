@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ParkingGarageAPI.Context;
 using ParkingGarageAPI.DTOs;
 using ParkingGarageAPI.Entities;
+using System.Text.Json.Serialization;
 
 namespace ParkingGarageAPI.Controller;
 
@@ -204,10 +205,11 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
             new ClaimsPrincipal(claimsIdentity), 
             authProperties);
 
-        return Ok(new 
+        return Ok(new LoginResponse 
         { 
             Message = "Login successful.", 
             User = foundUser.Email,
+            UserId = foundUser.Id,
             IsAdmin = foundUser.IsAdmin,
             LoginTime = loginTime.ToString("HH:mm:ss"),
             ExpiresAt = expiresAt.ToString("HH:mm:ss")
@@ -230,4 +232,15 @@ public class UpdateUserDto
     public string? PhoneNumber { get; set; }
     public string? NewPassword { get; set; }
     public bool? IsAdmin { get; set; }
+}
+
+public class LoginResponse
+{
+    public string Message { get; set; }
+    public string User { get; set; }
+    [JsonIgnore]
+    public int UserId { get; set; }
+    public bool IsAdmin { get; set; }
+    public string LoginTime { get; set; }
+    public string ExpiresAt { get; set; }
 }
