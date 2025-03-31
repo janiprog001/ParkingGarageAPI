@@ -238,7 +238,6 @@ public class LoginResponse
 {
     public string Message { get; set; }
     public string User { get; set; }
-    [JsonIgnore]
     public int UserId { get; set; }
     public bool IsAdmin { get; set; }
     public string LoginTime { get; set; }
