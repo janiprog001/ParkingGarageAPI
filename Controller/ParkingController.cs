@@ -279,6 +279,48 @@ public class ParkingController : ControllerBase
             return StatusCode(500, $"Belső szerverhiba: {ex.Message}");
         }
     }
+    
+    // Parkolás állapotának lekérdezése
+    [HttpGet("status/{carId}")]
+    public async Task<IActionResult> GetParkingStatus(int carId)
+    {
+        try
+        {
+            var userEmail = User.FindFirstValue(ClaimTypes.Name);
+            if (string.IsNullOrEmpty(userEmail))
+                return Unauthorized("Nem vagy bejelentkezve");
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == userEmail);
+
+            if (user == null)
+                return NotFound("Felhasználó nem található");
+
+            var car = await _context.Cars
+                .FirstOrDefaultAsync(c => c.Id == carId && c.UserId == user.Id);
+
+            if (car == null)
+                return NotFound("Az autó nem található vagy nem a tiéd");
+
+            var parkingSpot = await _context.ParkingSpots
+                .FirstOrDefaultAsync(p => p.CarId == car.Id && p.IsOccupied);
+
+            if (parkingSpot == null)
+                return Ok(new { isParked = false, message = "Az autó nincs leparkolva." });
+
+            return Ok(new
+            {
+                isParked = true,
+                startTime = parkingSpot.StartTime,
+                floor = parkingSpot.FloorNumber,
+                spot = parkingSpot.SpotNumber
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Belső szerverhiba: {ex.Message}");
+        }
+    }
 }
 
 // Request osztályok
