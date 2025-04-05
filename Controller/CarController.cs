@@ -115,16 +115,32 @@ public class CarController : ControllerBase
     }
     
     [HttpDelete("{id}")]
-    [Authorize(Policy = "AdminOnly")]
     public IActionResult DeleteCar(int id)
     {
         try
         {
-            var car = _context.Cars.FirstOrDefault(c => c.Id == id);
+            var userEmail = User.FindFirstValue(ClaimTypes.Name);
+            if (string.IsNullOrEmpty(userEmail))
+                return Unauthorized("User not authenticated.");
+                
+            var user = _context.Users.FirstOrDefault(u => u.Email == userEmail);
+            
+            if (user == null)
+                return NotFound("User not found.");
+            
+            Car car;
+            if (user.IsAdmin)
+            {
+                car = _context.Cars.FirstOrDefault(c => c.Id == id);
+            }
+            else
+            {
+                car = _context.Cars.FirstOrDefault(c => c.Id == id && c.UserId == user.Id);
+            }
             
             if (car == null)
-                return NotFound("Car not found.");
-                
+                return NotFound("Car not found or you don't have permission to delete it.");
+            
             _context.Cars.Remove(car);
             _context.SaveChanges();
             
