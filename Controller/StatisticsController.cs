@@ -89,7 +89,9 @@ public class StatisticsController : ControllerBase
             var carStats = _context.ParkingHistories
                 .Where(h => h.UserEmail == userEmail)
                 .GroupBy(h => new { h.CarId, h.CarBrand, h.CarModel, h.LicensePlate })
-                .Select(g => new {
+                .ToList()
+                .Select(g => new
+                {
                     carId = g.Key.CarId,
                     brand = g.Key.CarBrand,
                     model = g.Key.CarModel,
@@ -98,8 +100,8 @@ public class StatisticsController : ControllerBase
                     totalFee = g.Sum(h => h.Fee),
                     totalDuration = $"{Math.Floor(g.Sum(h => (h.EndTime - h.StartTime).TotalHours))} óra {Math.Floor(g.Sum(h => (h.EndTime - h.StartTime).TotalMinutes) % 60)} perc"
                 })
-                .OrderByDescending(c => c.totalParkings)
-                .ToList();
+                .OrderByDescending(c => c.totalParkings);
+                //.ToList();
                 
             return Ok(carStats);
         }
