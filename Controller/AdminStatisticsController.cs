@@ -61,7 +61,7 @@ public class AdminStatisticsController : ControllerBase
             var history = query.ToList();
             
             var totalParkings = history.Count;
-            var totalRevenue = history.Sum(h => h.Fee);
+            var totalRevenue = (int)history.Sum(h => h.Fee);
             var totalMinutes = history.Sum(h => (h.EndTime - h.StartTime).TotalMinutes);
             
             var hours = Math.Floor(totalMinutes / 60);
@@ -70,11 +70,11 @@ public class AdminStatisticsController : ControllerBase
             return Ok(new {
                 period = GetPeriodName(year, month),
                 totalParkings = totalParkings,
-                totalRevenue = $"{totalRevenue} Ft",
+                totalRevenue = totalRevenue,
                 totalParkingDuration = $"{hours} óra {minutes} perc",
                 averageParkingFee = totalParkings > 0 
-                    ? $"{Math.Round(totalRevenue / totalParkings, 0)} Ft"
-                    : "0 Ft"
+                    ? Math.Round(totalRevenue / (double)totalParkings, 0)
+                    : 0
             });
         }
         catch (Exception ex)
@@ -118,12 +118,13 @@ public class AdminStatisticsController : ControllerBase
         {
             var userStats = _context.ParkingHistories
                 .GroupBy(h => new { h.UserId, h.UserName, h.UserEmail })
+                .ToList() // Adatok lekérése az adatbázisból
                 .Select(g => new {
                     userId = g.Key.UserId,
                     userName = g.Key.UserName,
                     email = g.Key.UserEmail,
                     totalParkings = g.Count(),
-                    totalFee = g.Sum(h => h.Fee),
+                    totalFee = (int)g.Sum(h => h.Fee),
                     avgParkingDuration = g.Average(h => (h.EndTime - h.StartTime).TotalMinutes)
                 })
                 .OrderByDescending(u => u.totalParkings)
@@ -135,7 +136,7 @@ public class AdminStatisticsController : ControllerBase
                 userName = u.userName,
                 email = u.email,
                 totalParkings = u.totalParkings,
-                totalFee = $"{u.totalFee} Ft",
+                totalFee = u.totalFee,
                 avgParkingDuration = $"{Math.Floor(u.avgParkingDuration / 60)} óra {Math.Floor(u.avgParkingDuration % 60)} perc"
             });
                 
@@ -168,13 +169,13 @@ public class AdminStatisticsController : ControllerBase
                     .ToList();
                     
                 var totalParkings = monthData.Count;
-                var totalRevenue = monthData.Sum(h => h.Fee);
+                var totalRevenue = (int)monthData.Sum(h => h.Fee);
                 
                 monthlyStats.Add(new {
                     month = month,
                     monthName = new DateTime(year, month, 1).ToString("MMMM"),
                     totalParkings = totalParkings,
-                    totalRevenue = $"{totalRevenue} Ft"
+                    totalRevenue = totalRevenue
                 });
             }
                 
