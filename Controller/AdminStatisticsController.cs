@@ -118,6 +118,7 @@ public class AdminStatisticsController : ControllerBase
         {
             var userStats = _context.ParkingHistories
                 .GroupBy(h => new { h.UserId, h.UserName, h.UserEmail })
+                .ToList() // Adatok lekérése az adatbázisból
                 .Select(g => new {
                     userId = g.Key.UserId,
                     userName = g.Key.UserName,
