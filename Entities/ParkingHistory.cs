@@ -29,6 +29,18 @@ namespace ParkingGarageAPI.Entities
         [JsonIgnore]
         public TimeSpan Duration => EndTime - StartTime;
         
-        public string DurationFormatted => $"{Duration.Hours} óra {Duration.Minutes} perc";
+        public string DurationFormatted {
+            get {
+                int totalHours = (int)Duration.TotalHours;
+                int days = totalHours / 24;
+                int hours = totalHours % 24;
+                int minutes = Duration.Minutes;
+                
+                if (days > 0)
+                    return $"{days} nap, {hours} óra {minutes} perc";
+                else
+                    return $"{hours} óra {minutes} perc";
+            }
+        }
     }
 } 
