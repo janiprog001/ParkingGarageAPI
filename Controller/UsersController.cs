@@ -185,7 +185,7 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
             return Unauthorized("Invalid email or password.");
 
         var loginTime = DateTime.UtcNow;
-        var expiresAt = loginTime.AddMinutes(5); // 5 percig érvényes sütik
+        var expiresAt = loginTime.AddMinutes(15); // 15 percig érvényes sütik
 
         var claims = new List<Claim> 
         { 
