@@ -69,7 +69,7 @@ public class StatisticsController : ControllerBase
             return Ok(new {
                 message = "Parkolási összesítő",
                 totalParkings = totalParkings,
-                totalFee = $"{totalFee} Ft",
+                totalFee = $"{totalFee:F0}",
                 averageDuration = $"{hours} óra {minutes} perc"
             });
         }
@@ -97,7 +97,7 @@ public class StatisticsController : ControllerBase
                     model = g.Key.CarModel,
                     licensePlate = g.Key.LicensePlate,
                     totalParkings = g.Count(),
-                    totalFee = g.Sum(h => h.Fee),
+                    totalFee = $"{g.Sum(h => h.Fee):F0}",
                     totalDuration = $"{Math.Floor(g.Sum(h => (h.EndTime - h.StartTime).TotalHours))} óra {Math.Floor(g.Sum(h => (h.EndTime - h.StartTime).TotalMinutes) % 60)} perc"
                 })
                 .OrderByDescending(c => c.totalParkings);
@@ -140,7 +140,7 @@ public class StatisticsController : ControllerBase
                 month = month,
                 monthName = new DateTime(year, month, 1).ToString("MMMM"),
                 totalParkings = totalParkings,
-                totalFee = $"{totalFee} Ft",
+                totalFee = $"{totalFee:F0}",
                 totalDuration = $"{hours} óra {minutes} perc"
             });
         }
