@@ -220,7 +220,41 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return Ok("Logged out successfully.");
+        return Ok("User logged out successfully.");
+    }
+
+    [HttpGet("status")]
+    public async Task<IActionResult> GetUserStatus()
+    {
+        var currentUserEmail = User.FindFirstValue(ClaimTypes.Name);
+        if (string.IsNullOrEmpty(currentUserEmail))
+            return Unauthorized(new { authenticated = false, message = "Not authenticated" });
+            
+        var user = await context.Users
+            .Include(u => u.Cars)
+            .Select(u => new {
+                u.Id,
+                u.Email,
+                u.FirstName,
+                u.LastName,
+                u.IsAdmin,
+                Cars = u.Cars.Select(c => new {
+                    c.Id,
+                    c.Brand,
+                    c.Model,
+                    c.LicensePlate,
+                    c.IsParked
+                }).ToList()
+            })
+            .FirstOrDefaultAsync(u => u.Email == currentUserEmail);
+            
+        if (user == null)
+            return Unauthorized(new { authenticated = false, message = "User not found" });
+            
+        return Ok(new { 
+            authenticated = true,
+            user = user
+        });
     }
 }
 

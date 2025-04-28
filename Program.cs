@@ -8,6 +8,8 @@ using ParkingGarageAPI.Auth;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using DotNetEnv;
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Text.RegularExpressions;
+using ParkingGarageAPI.Controller;
 
 // Környezeti változók betöltése a .env fájlból
 Env.Load();
@@ -52,8 +54,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options => {
         options.LoginPath = "/api/users/login";
         options.LogoutPath = "/api/users/logout";
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+        options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.HttpOnly = true;
         options.Events = new CookieAuthenticationEvents
         {
@@ -76,6 +78,9 @@ builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
 builder.Services.AddScoped<ParkingGarageAPI.Services.IEmailService, ParkingGarageAPI.Services.EmailService>();
 builder.Services.AddScoped<ParkingGarageAPI.Services.IInvoiceService, ParkingGarageAPI.Services.InvoiceService>();
 
+// Controller-ek regisztrálása
+builder.Services.AddScoped<ReservationController>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -91,12 +96,8 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.WithOrigins(
-                "http://localhost:5173",
-                "https://parking-garage-app.netlify.app",
-                "https://*.netlify.app",
-                "https://*.onrender.com"
-            )
+        builder
+            .SetIsOriginAllowed(origin => true)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();

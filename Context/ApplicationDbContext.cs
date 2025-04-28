@@ -13,6 +13,7 @@ namespace ParkingGarageAPI.Context
         public DbSet<ParkingSpot> ParkingSpots { get; set; }
         public DbSet<ParkingHistory> ParkingHistories { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Reservation> Reservations { get; set; }
 
         // Az entitások közötti kapcsolat konfigurálása
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -42,6 +43,25 @@ namespace ParkingGarageAPI.Context
                 .WithMany()
                 .HasForeignKey(i => i.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+                
+            // Reservation kapcsolatok
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.Car)
+                .WithMany()
+                .HasForeignKey(r => r.CarId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.ParkingSpot)
+                .WithMany()
+                .HasForeignKey(r => r.ParkingSpotId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
         
         // Seed metódus
