@@ -32,12 +32,12 @@ namespace ParkingGarageAPI.Entities
         
         // Navigációs tulajdonságok
         [JsonIgnore]
-        public User User { get; set; }
+        public virtual User User { get; set; }
         
         [JsonIgnore]
-        public Car Car { get; set; }
+        public virtual Car Car { get; set; }
         
         [JsonIgnore]
-        public ParkingSpot ParkingSpot { get; set; }
+        public virtual ParkingSpot ParkingSpot { get; set; }
     }
 } 

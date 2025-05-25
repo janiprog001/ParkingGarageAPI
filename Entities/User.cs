@@ -48,5 +48,17 @@ namespace ParkingGarageAPI.Entities
         [JsonPropertyName("cars")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ICollection<Car> Cars { get; set; }
+
+        // Kapcsolat az Invoice entitással
+        [JsonIgnore]
+        public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+
+        // Kapcsolat a ParkingHistory entitással
+        [JsonIgnore]
+        public ICollection<ParkingHistory> ParkingHistories { get; set; } = new List<ParkingHistory>();
+
+        // Kapcsolat a Reservation entitással
+        [JsonIgnore]
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }
