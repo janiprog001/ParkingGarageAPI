@@ -159,22 +159,124 @@ public class UsersController(ApplicationDbContext context) : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        var currentUserEmail = User.FindFirstValue(ClaimTypes.Name);
-        var currentUser = await context.Users.FirstOrDefaultAsync(u => u.Email == currentUserEmail);
-        
-        if (currentUser == null)
-            return Unauthorized("User not found.");
+        try
+        {
+            Console.WriteLine($"Starting user deletion for ID: {id}");
+            
+            var currentUserEmail = User.FindFirst(ClaimTypes.Name)?.Value;
+            Console.WriteLine($"Current user email: {currentUserEmail}");
+            
+            if (string.IsNullOrEmpty(currentUserEmail))
+            {
+                Console.WriteLine("No current user email found");
+                return Unauthorized(new { message = "Felhasználó nincs bejelentkezve" });
+            }
 
-        var userToDelete = await context.Users.FindAsync(id);
-        if (userToDelete == null)
-            return NotFound("User not found.");
+            var currentUser = await context.Users.FirstOrDefaultAsync(u => u.Email == currentUserEmail);
+            Console.WriteLine($"Current user found: {currentUser != null}, IsAdmin: {currentUser?.IsAdmin}");
+            
+            if (currentUser == null)
+            {
+                Console.WriteLine("Current user not found in database");
+                return Unauthorized(new { message = "Felhasználó nem található" });
+            }
 
-        if (!currentUser.IsAdmin && currentUser.Id != id)
-            return Forbid("You don't have permission to delete this user.");
+            if (!currentUser.IsAdmin)
+            {
+                Console.WriteLine("Current user is not admin");
+                return Forbid("Nincs jogosultsága a művelet végrehajtásához");
+            }
 
-        context.Users.Remove(userToDelete);
-        await context.SaveChangesAsync();
-        return Ok("User deleted successfully.");
+            Console.WriteLine("Loading user to delete with related entities");
+            var userToDelete = await context.Users
+                .Include(u => u.Cars)
+                .Include(u => u.Invoices)
+                .Include(u => u.ParkingHistories)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (userToDelete == null)
+            {
+                Console.WriteLine($"User to delete not found with ID: {id}");
+                return NotFound(new { message = "A törlendő felhasználó nem található" });
+            }
+
+            Console.WriteLine($"Found user to delete: {userToDelete.Email}");
+            Console.WriteLine($"Related entities - Cars: {userToDelete.Cars?.Count ?? 0}, " +
+                            $"Invoices: {userToDelete.Invoices?.Count ?? 0}, " +
+                            $"ParkingHistories: {userToDelete.ParkingHistories?.Count ?? 0}");
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await context.Database.BeginTransactionAsync();
+                try
+                {
+                    // Először töröljük a számlákat, mert azok hivatkoznak a parkolási előzményekre
+                    if (userToDelete.Invoices != null && userToDelete.Invoices.Any())
+                    {
+                        Console.WriteLine($"Deleting {userToDelete.Invoices.Count} invoices");
+                        context.Invoices.RemoveRange(userToDelete.Invoices);
+                        await context.SaveChangesAsync();
+                    }
+
+                    // Ezután töröljük a parkolási előzményeket
+                    if (userToDelete.ParkingHistories != null && userToDelete.ParkingHistories.Any())
+                    {
+                        Console.WriteLine($"Deleting {userToDelete.ParkingHistories.Count} parking histories");
+                        context.ParkingHistories.RemoveRange(userToDelete.ParkingHistories);
+                        await context.SaveChangesAsync();
+                    }
+
+                    // Végül töröljük az autókat
+                    if (userToDelete.Cars != null && userToDelete.Cars.Any())
+                    {
+                        Console.WriteLine($"Deleting {userToDelete.Cars.Count} cars");
+                        context.Cars.RemoveRange(userToDelete.Cars);
+                        await context.SaveChangesAsync();
+                    }
+
+                    // Végül töröljük a felhasználót
+                    Console.WriteLine("Deleting user");
+                    context.Users.Remove(userToDelete);
+                    await context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                    Console.WriteLine("User deletion completed successfully");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error during deletion: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                        Console.WriteLine($"Inner exception stack trace: {ex.InnerException.StackTrace}");
+                    }
+                    
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
+
+            return Ok(new { message = "Felhasználó sikeresen törölve" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected error: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                Console.WriteLine($"Inner exception stack trace: {ex.InnerException.StackTrace}");
+            }
+            
+            return StatusCode(500, new { 
+                message = "Váratlan hiba történt", 
+                error = ex.Message,
+                innerError = ex.InnerException?.Message,
+                stackTrace = ex.StackTrace
+            });
+        }
     }
 
     [HttpPost("login")]
