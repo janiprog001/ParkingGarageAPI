@@ -41,7 +41,7 @@ namespace ParkingGarageAPI.Entities
         public int UserId { get; set; }
         
         [JsonIgnore]
-        public virtual User? User { get; set; }
+        public virtual User User { get; set; }
         
         // Email küldési információk
         public bool EmailSent { get; set; } = false;

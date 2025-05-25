@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ParkingGarageAPI.Context;
 
@@ -11,9 +12,11 @@ using ParkingGarageAPI.Context;
 namespace ParkingGarageAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250524202953_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -181,8 +184,6 @@ namespace ParkingGarageAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("ParkingHistories");
                 });
 
@@ -327,7 +328,7 @@ namespace ParkingGarageAPI.Migrations
                         .IsRequired();
 
                     b.HasOne("ParkingGarageAPI.Entities.User", "User")
-                        .WithMany("Invoices")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -335,15 +336,6 @@ namespace ParkingGarageAPI.Migrations
                     b.Navigation("ParkingHistory");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ParkingGarageAPI.Entities.ParkingHistory", b =>
-                {
-                    b.HasOne("ParkingGarageAPI.Entities.User", null)
-                        .WithMany("ParkingHistories")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("ParkingGarageAPI.Entities.ParkingSpot", b =>
@@ -371,7 +363,7 @@ namespace ParkingGarageAPI.Migrations
                         .IsRequired();
 
                     b.HasOne("ParkingGarageAPI.Entities.User", "User")
-                        .WithMany("Reservations")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -391,12 +383,6 @@ namespace ParkingGarageAPI.Migrations
             modelBuilder.Entity("ParkingGarageAPI.Entities.User", b =>
                 {
                     b.Navigation("Cars");
-
-                    b.Navigation("Invoices");
-
-                    b.Navigation("ParkingHistories");
-
-                    b.Navigation("Reservations");
                 });
 #pragma warning restore 612, 618
         }

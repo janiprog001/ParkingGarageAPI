@@ -36,18 +36,18 @@ namespace ParkingGarageAPI.Context
                 .HasOne(i => i.ParkingHistory)
                 .WithMany()
                 .HasForeignKey(i => i.ParkingHistoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
             
             modelBuilder.Entity<Invoice>()
                 .HasOne(i => i.User)
-                .WithMany()
+                .WithMany(u => u.Invoices)
                 .HasForeignKey(i => i.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
                 
             // Reservation kapcsolatok
             modelBuilder.Entity<Reservation>()
                 .HasOne(r => r.User)
-                .WithMany()
+                .WithMany(u => u.Reservations)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
                 

@@ -38,17 +38,17 @@ if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(port) || string.IsNullOrE
 }
 
 var connectionString = $"Server={host};" +
-                      $"Port={port};" +
-                      $"Database={database};" +
-                      $"User={user};" +
-                      $"Password={password};" +
-                      $"SslMode={sslMode}";
+                    $"Port={port};" +
+                    $"Database={database};" +
+                    $"User={user};" +
+                    $"Password={password};" +
+                    $"SslMode={sslMode}";
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, 
     new MySqlServerVersion(new Version(8, 0, 13)),
-     mySqlOptions => mySqlOptions.EnableRetryOnFailure()));
+    mySqlOptions => mySqlOptions.EnableRetryOnFailure()));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
@@ -94,17 +94,19 @@ builder.Services.AddSwaggerGen();
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddPolicy("AllowAll", builder =>
     {
-        builder
-            .SetIsOriginAllowed(origin => true)
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+        builder.SetIsOriginAllowed(origin => 
+            origin == "https://parking-garage-app.netlify.app" || 
+            origin == "http://localhost:5173")
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
 var app = builder.Build();
+app.UseCors("AllowAll");
 
 // Swagger mindig elérhető
 app.UseSwagger();
@@ -114,7 +116,6 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty;
 });
 
-app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 

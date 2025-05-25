@@ -12,8 +12,8 @@ using ParkingGarageAPI.Context;
 namespace ParkingGarageAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250322051912_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250524205418_FixUserRelationships")]
+    partial class FixUserRelationships
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,30 +35,36 @@ namespace ParkingGarageAPI.Migrations
 
                     b.Property<string>("Brand")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "brand");
 
                     b.Property<bool>("IsParked")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "licensePlate");
 
                     b.Property<string>("Model")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "model");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.Property<int>("Year")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasAnnotation("Relational:JsonPropertyName", "year");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Cars");
+
+                    b.HasAnnotation("Relational:JsonPropertyName", "cars");
                 });
 
             modelBuilder.Entity("ParkingGarageAPI.Entities.Invoice", b =>
@@ -178,6 +184,8 @@ namespace ParkingGarageAPI.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("ParkingHistories");
                 });
 
@@ -217,6 +225,50 @@ namespace ParkingGarageAPI.Migrations
                     b.ToTable("ParkingSpots");
                 });
 
+            modelBuilder.Entity("ParkingGarageAPI.Entities.Reservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CarId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ParkingSpotId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("TotalFee")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CarId");
+
+                    b.HasIndex("ParkingSpotId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Reservations");
+                });
+
             modelBuilder.Entity("ParkingGarageAPI.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -227,26 +279,31 @@ namespace ParkingGarageAPI.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "email");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "firstName");
 
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "lastName");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "passwordHash");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasAnnotation("Relational:JsonPropertyName", "phoneNumber");
 
                     b.HasKey("Id");
 
@@ -269,18 +326,27 @@ namespace ParkingGarageAPI.Migrations
                     b.HasOne("ParkingGarageAPI.Entities.ParkingHistory", "ParkingHistory")
                         .WithMany()
                         .HasForeignKey("ParkingHistoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ParkingGarageAPI.Entities.User", "User")
-                        .WithMany()
+                        .WithMany("Invoices")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ParkingHistory");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ParkingGarageAPI.Entities.ParkingHistory", b =>
+                {
+                    b.HasOne("ParkingGarageAPI.Entities.User", null)
+                        .WithMany("ParkingHistories")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ParkingGarageAPI.Entities.ParkingSpot", b =>
@@ -293,6 +359,33 @@ namespace ParkingGarageAPI.Migrations
                     b.Navigation("Car");
                 });
 
+            modelBuilder.Entity("ParkingGarageAPI.Entities.Reservation", b =>
+                {
+                    b.HasOne("ParkingGarageAPI.Entities.Car", "Car")
+                        .WithMany()
+                        .HasForeignKey("CarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ParkingGarageAPI.Entities.ParkingSpot", "ParkingSpot")
+                        .WithMany()
+                        .HasForeignKey("ParkingSpotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ParkingGarageAPI.Entities.User", "User")
+                        .WithMany("Reservations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Car");
+
+                    b.Navigation("ParkingSpot");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ParkingGarageAPI.Entities.Car", b =>
                 {
                     b.Navigation("ParkingSpot");
@@ -301,6 +394,12 @@ namespace ParkingGarageAPI.Migrations
             modelBuilder.Entity("ParkingGarageAPI.Entities.User", b =>
                 {
                     b.Navigation("Cars");
+
+                    b.Navigation("Invoices");
+
+                    b.Navigation("ParkingHistories");
+
+                    b.Navigation("Reservations");
                 });
 #pragma warning restore 612, 618
         }
