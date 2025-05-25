@@ -54,8 +54,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options => {
         options.LoginPath = "/api/users/login";
         options.LogoutPath = "/api/users/logout";
-        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.None;
         options.Cookie.HttpOnly = true;
         options.Events = new CookieAuthenticationEvents
         {
